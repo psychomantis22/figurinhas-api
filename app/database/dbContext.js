@@ -11,19 +11,26 @@ var dbContext = {
             const db = client.db(DB_NAME);
     
             req.app.db = db;
-            console.log('connection opened');
-        }
+        };
         
         next();
     },
-    createAlbum: async (payload, db) => {
+    createOrUpdate: async (collectionName, payload, db) => {
         try {
-            const albumsCollection = db.collection('albums');
-            return await albumsCollection.insertOne(payload);
+            if (!payload.key) {
+                throw `Key not informed`;
+            };
+
+            const collection = db.collection(collectionName);
+
+            const query = { key: payload.key };
+            const update = { $set: payload};
+            const options = { upsert: true };
+            return await collection.updateOne(query, update, options);
         } catch (e) {
             console.error(e);
             throw e;
-        }
+        };
     }
 };
 

@@ -1,24 +1,21 @@
 import express from 'express';
 import dbContext from './app/database/dbContext.js';
+import mainService from './app/services/mainService.js';
 
 const app = express();
 app.use(express.json());
 app.use(dbContext.middleware);
+app.use(mainService.injectServices);
 const port = 3000;
 
-app.get('/', (req, res) => {
-    res.send('Hello World!')
-});
-
-app.get('/dbs', (req, res) => {
-    dbContext.listDatabases();
-    res.send('listed');
-});
-
 app.post('/album', async (req, res) => {
-    var result = await dbContext.createAlbum(req.body, req.app.db);
-    res.json(result);
-    console.log('result', result);
+    try {
+        var result = await req.app.albumService.createOrUpdateAlbum(req.body);
+        res.json(result);
+        console.log('result', result);
+    } catch (e) {
+        res.status(500).send(e);
+    }
 });
 
 app.listen(port, () => {
