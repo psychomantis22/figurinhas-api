@@ -12,7 +12,6 @@ app.post('/album', async (req, res) => {
     try {
         var result = await req.app.albumService.createOrUpdateAlbum(req.body);
         res.json(result);
-        console.log('result', result);
     } catch (e) {
         res.status(500).send(e);
     }
@@ -21,3 +20,10 @@ app.post('/album', async (req, res) => {
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
 });
+
+function cleanup() {
+    if (app.db) app.db.close();
+};
+
+process.on('SIGINT', cleanup);
+process.on('SIGTERM', cleanup);
