@@ -1,5 +1,5 @@
 export default {
-    equalizePayloadWithModel(model, payload) {
+    equalizePayloadWithModel(model: any, payload: any) {
         let result = { ...model, ...payload };
 
         Object.keys(result).forEach((field) => {

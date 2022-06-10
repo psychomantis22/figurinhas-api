@@ -5,7 +5,9 @@
   "main": "main.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon main.js"
+    "compile": "tsc && node ./dist/main.js",
+    "dev": "nodemon -e ts --exec \"npm run compile\" --signal SIGPIPE",
+    "start": "ts-node ./src/main.ts"
   },
   "repository": {
     "type": "git",
@@ -25,6 +27,10 @@
     "mongodb": "^4.6.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.16"
+    "@types/express": "^4.17.13",
+    "@types/mongodb": "^4.0.7",
+    "@types/node": "^17.0.41",
+    "nodemon": "^2.0.16",
+    "typescript": "^4.7.3"
   }
 }

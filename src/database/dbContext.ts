@@ -1,21 +1,23 @@
 import 'dotenv/config'
-import { MongoClient } from 'mongodb';
+import { MongoClient, Db } from 'mongodb';
+import { Request, Response, NextFunction } from 'express';
 
 const MONGO_DB_URI = process.env.MONGODB_CONNECTION_STRING;
 const DB_NAME = process.env.DB_NAME;
 
 var dbContext = {
-    middleware: async (req, res, next) => {
-        if (!req.app.db) {
-            const client = await MongoClient.connect(MONGO_DB_URI, { useUnifiedTopology: true });
+    middleware: async (req: Request, res: Response, next: NextFunction) => {
+        if (!req.app.locals.db) {
+            const client = await MongoClient.connect(MONGO_DB_URI);
             const db = client.db(DB_NAME);
-    
-            req.app.db = db;
+            console.log('conexao aberta');
+            req.app.locals.dbClient = client;
+            req.app.locals.db = db;
         };
         
         next();
     },
-    createOrUpdate: async (collectionName, payload, db) => {
+    createOrUpdate: async (collectionName: string, payload: any, db: Db) => {
         try {
             if (!payload.key) {
                 throw `Key not informed`;
