@@ -3,6 +3,7 @@ import { Url } from "url";
 declare global {
     namespace NodeJS {
         interface ProcessEnv {
+            EXPRESS_PORT: number;
             MONGODB_CONNECTION_STRING: string;
             DB_NAME: string;
             ALBUM_COLLECTION_NAME: string;

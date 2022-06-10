@@ -1,13 +1,13 @@
+import 'dotenv/config'
 import express from 'express';
 import dbContext from './database/dbContext.js';
 import mainService from './services/mainService.js';
-import fs from 'fs';
 
 const app = express();
 app.use(express.json());
 app.use(dbContext.middleware);
 app.use(mainService.injectServices);
-const port = 3000;
+const port = process.env.EXPRESS_PORT;
 
 app.post('/album', async (req, res) => {
     try {
