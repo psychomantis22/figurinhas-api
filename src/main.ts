@@ -30,8 +30,7 @@ function cleanup(signal: any) {
     process.exit();
 };
 
-process.on('SIGINT', cleanup);
-process.on('SIGTERM', cleanup);
-process.on('SIGQUIT', cleanup);
-process.on('SIGKILL', cleanup);
-process.on('SIGPIPE', cleanup);
+process.once('SIGINT', cleanup);
+process.once('SIGTERM', cleanup);
+process.once('SIGQUIT', cleanup);
+process.once('SIGKILL', cleanup);

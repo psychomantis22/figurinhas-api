@@ -2,12 +2,10 @@
   "name": "figurinhas-api",
   "version": "1.0.0",
   "description": "",
-  "main": "main.js",
+  "main": "./dist/main.js",
   "type": "module",
   "scripts": {
-    "compile": "tsc && node ./dist/main.js",
-    "dev": "nodemon -e ts --exec \"npm run compile\" --signal SIGPIPE",
-    "start": "ts-node ./src/main.ts"
+    "dev": "nodemon --exec \"tsc && node\" ./dist/main.js"
   },
   "repository": {
     "type": "git",
