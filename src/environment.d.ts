@@ -1,7 +1,7 @@
 declare global {
     namespace NodeJS {
         interface ProcessEnv {
-            EXPRESS_PORT: number;
+            PORT: number;
             AUTHORIZATION_HEADER_NAME: string;
             MONGODB_CONNECTION_STRING: string;
             DB_NAME: string;

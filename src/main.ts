@@ -112,6 +112,6 @@ process.once('SIGINT', cleanup);
 process.once('SIGTERM', cleanup);
 process.once('SIGQUIT', cleanup);
 
-app.listen(port, () => {
+app.listen(process.env.PORT || 3000, () => {
     console.log(`Listening on port ${port}`);
 });
