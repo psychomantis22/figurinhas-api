@@ -7,7 +7,7 @@ const app = express();
 app.use(express.json());
 app.use(dbContext.middleware);
 app.use(mainService.injectServices);
-const port = process.env.EXPRESS_PORT;
+const port = process.env.PORT || 3000;
 
 //ALBUM
 app.get('/album', async (req, res) => {
@@ -112,6 +112,6 @@ process.once('SIGINT', cleanup);
 process.once('SIGTERM', cleanup);
 process.once('SIGQUIT', cleanup);
 
-app.listen(process.env.PORT || 3000, () => {
+app.listen(port, () => {
     console.log(`Listening on port ${port}`);
 });
