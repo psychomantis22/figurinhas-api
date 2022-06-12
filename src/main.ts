@@ -111,7 +111,6 @@ function cleanup(signal: any) {
 process.once('SIGINT', cleanup);
 process.once('SIGTERM', cleanup);
 process.once('SIGQUIT', cleanup);
-process.once('SIGKILL', cleanup);
 
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
