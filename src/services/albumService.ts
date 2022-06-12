@@ -32,7 +32,19 @@ class AlbumService {
         return { success: true, errorMessage: '' };
     };
 
-    async createOrUpdateAlbum(payload: albumType) {
+    async getAlbumByKey(key: string, authorization: string) {
+        return await dbContext.getOneByKey<albumType>(this.collectionName, key, authorization, this.db);
+    };
+
+    async getAlbumById(id: string, authorization: string) {
+        return await dbContext.getOneById<albumType>(this.collectionName, id, authorization, this.db);
+    };
+
+    async getAlbums(authorization: string) {
+        return await dbContext.getAll<albumType>(this.collectionName, authorization, this.db);
+    };
+
+    async createOrUpdateAlbum(payload: albumType, authorization: string) {
         payload = util.equalizePayloadWithModel(albumModel, payload);
         let validateResult = this.validate(payload);
 
@@ -47,13 +59,17 @@ class AlbumService {
             if (uploadResult.success) {
                 payload.image.base64 = this.storeImageOnDatabase ? payload.image.base64 : '';
                 payload.image.display_url = uploadResult.data.display_url;
-                return await dbContext.createOrUpdate(this.collectionName, payload, this.db);
+                return await dbContext.createOrUpdate(this.collectionName, payload, authorization, this.db);
             } else {
                 throw "Error uploading image.";
             };
         } catch (e) {
             console.error(e);
-            throw e;
+            if (typeof e === 'string' || e instanceof String) {
+                throw e;
+            } else {
+                throw "createOrUpdateAlbum error";
+            };
         };
     };
 };

@@ -11,5 +11,13 @@ export default {
         });
 
         return result;
+    },
+
+    minDate() {
+        return new Date(-8640000000000000);
+    },
+
+    maxDate() {
+        return new Date(8640000000000000);
     }
 };

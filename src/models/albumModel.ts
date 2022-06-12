@@ -1,5 +1,5 @@
 export type albumImageType = {
-    base64: string;
+    base64?: string;
     display_url: string;
 };
 

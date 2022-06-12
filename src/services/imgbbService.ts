@@ -14,16 +14,20 @@ class ImageBBService {
         this.apiKey = IMG_API_KEY;
     };
 
-    async uploadImage(base64: string) {
-        let formData = new FormData();
-        formData.append("image", base64);
-        const result = await axios.post(`${this.uploadURI}?key=${IMG_API_KEY}`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        });
+    async uploadImage(base64?: string) {
+        if (base64) {
+            let formData = new FormData();
+            formData.append("image", base64);
+            const result = await axios.post(`${this.uploadURI}?key=${IMG_API_KEY}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
 
-        return result.data;
+            return result.data;
+        } else {
+            throw "missing base64";
+        }    
     };
 };
 
