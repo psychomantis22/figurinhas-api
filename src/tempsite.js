@@ -1,8 +1,8 @@
 var app = angular.module('app', []);
 app.controller('ctrl', ['$scope', '$http', function($scope, $http) {
-    $scope.feedback;
-    $scope.auth = "pmantis;4xdvn66voubxaczhwao7avnwf14ruv";
-    $scope.channelName;
+    $scope.feedback = "";
+    $scope.auth = "";
+    $scope.channelName = "";
     $scope.albuns = [];
     $scope.editAlbum = false;
     
