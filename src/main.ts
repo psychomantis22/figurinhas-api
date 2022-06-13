@@ -3,6 +3,7 @@ import express from 'express';
 import dbContext from './database/dbContext.js';
 import mainService from './services/mainService.js';
 import path from 'path';
+import axios from 'axios';
 
 const app = express();
 app.use(express.json({limit: '1mb'}));
@@ -16,6 +17,17 @@ app.get('/', (req, res) => {
 
 app.get('/tempsite.js', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'src/tempsite.js'));
+});
+
+app.get('/ip', (req, res) => {
+    axios.get('https://api.ipify.org/')
+    .then(function(result) {
+        console.log(result.data);
+    })
+    .catch(function () {
+        console.log("coundn't get ip");
+    });
+    res.send();
 });
 
 //ALBUM
