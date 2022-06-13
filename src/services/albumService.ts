@@ -40,6 +40,10 @@ class AlbumService {
         return await dbContext.getOneById<albumType>(this.collectionName, id, authorization, this.db);
     };
 
+    async deleteAlbumById(id: string, authorization: string) {
+        return await dbContext.deleteById(this.collectionName, id, authorization, this.db);
+    };
+
     async getAlbums(authorization: string) {
         return await dbContext.getAll<albumType>(this.collectionName, authorization, this.db);
     };
