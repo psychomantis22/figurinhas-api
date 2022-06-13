@@ -1,4 +1,7 @@
 {
-    "ext": "ts",
-    "signal": "SIGINT"
+    "ext": "ts,html,js",
+    "signal": "SIGINT",
+    "watch": [
+        "src"
+    ]
 }

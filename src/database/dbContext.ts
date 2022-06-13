@@ -89,6 +89,22 @@ var dbContext = {
             };
         };
     },
+    async deleteById(collectionName: string, id: string, authorization: string, db: Db): Promise<void> {
+        try {
+            const collectionFullName = await getCollectionFullName(collectionName, authorization, db);
+            const collection = db.collection(collectionFullName);
+            const query = { _id: convertToObjectId(id) };
+            await collection.deleteOne(query);
+        } catch (e) {
+            console.error(e);
+            
+            if (typeof e === 'string' || e instanceof String) {
+                throw e;
+            } else {
+                throw "getOne error";
+            };
+        };
+    },
     async getOneByKey<Type>(collectionName: string, key: string, authorization: string, db: Db): Promise<Type> {
         try {
             const collectionFullName = await getCollectionFullName(collectionName, authorization, db);

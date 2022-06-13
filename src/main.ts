@@ -2,14 +2,27 @@ import 'dotenv/config'
 import express from 'express';
 import dbContext from './database/dbContext.js';
 import mainService from './services/mainService.js';
+import path from 'path';
 
 const app = express();
-app.use(express.json());
+app.use(express.json({limit: '1mb'}));
 app.use(dbContext.middleware);
 app.use(mainService.injectServices);
 const port = process.env.PORT || 3000;
 
+app.get('/', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'src/tempsite.html'));
+});
+
+app.get('/tempsite.js', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'src/tempsite.js'));
+});
+
 //ALBUM
+app.get('/album/image/default', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'src/images/albumDefault.png'));
+});
+
 app.get('/album', async (req, res) => {
     try {
         let result;
@@ -38,6 +51,15 @@ app.post('/album', async (req, res) => {
         var result = await req.app.locals.albumService.createOrUpdateAlbum(req.body, req.header(process.env.AUTHORIZATION_HEADER_NAME));
         res.json(result);
     } catch (e) {
+        res.status(500).send(e);
+    };
+});
+
+app.delete('/album/:id', async (req, res) => {
+    try {
+        let result = await req.app.locals.albumService.deleteAlbumById(req.params.id, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        res.json(result);
+    } catch(e) {
         res.status(500).send(e);
     };
 });
@@ -93,7 +115,7 @@ app.get('/auth/token', async (req, res) => {
 app.get('/auth/callback', async (req, res) => {
     try {
         let result = await req.app.locals.tokenService.handleTwitchCallback(req.query.code, req.query.state, req.app.locals.db);
-        res.send(`Access verified, please use this code to access the API: ${result}`);
+        res.json({ "Authorization": result });
     } catch (e) {
         res.status(500).send(e);
     };
