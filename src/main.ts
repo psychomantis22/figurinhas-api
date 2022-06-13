@@ -19,17 +19,6 @@ app.get('/tempsite.js', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'src/tempsite.js'));
 });
 
-app.get('/ip', (req, res) => {
-    axios.get('https://api.ipify.org/')
-    .then(function(result) {
-        console.log(result.data);
-    })
-    .catch(function () {
-        console.log("coundn't get ip");
-    });
-    res.send();
-});
-
 //ALBUM
 app.get('/album/image/default', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'src/images/albumDefault.png'));
@@ -148,4 +137,11 @@ process.once('SIGQUIT', cleanup);
 
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
+    axios.get('https://api.ipify.org/')
+    .then(function(result) {
+        console.log(result.data);
+    })
+    .catch(function () {
+        console.log("coundn't get ip");
+    });
 });
