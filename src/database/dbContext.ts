@@ -7,7 +7,7 @@ const MONGO_DB_URI = process.env.MONGODB_CONNECTION_STRING;
 const DB_NAME = process.env.DB_NAME;
 const TOKEN_COLLECTION_NAME = process.env.TOKEN_COLLECTION_NAME;
 
-async function getCollectionFullName(collectionName: string, authorization: string, db: Db): Promise<string> {
+async function getCollectionFullName(collectionName: string, db: Db, authorization?: string): Promise<string> {
     if (authorization && authorization.includes(';')) {
         let collectionFullName: string;
         let channel_name = authorization.split(';')[0];
@@ -39,23 +39,23 @@ function convertToObjectId(value: string): ObjectId {
 
 var dbContext = {
     middleware: async (req: Request, res: Response, next: NextFunction) => {
-        if (!req.app.locals.db) {
+        if (!req.app.db) {
             const client = await MongoClient.connect(MONGO_DB_URI);
             const db = client.db(DB_NAME);
             console.log('conexao aberta');
-            req.app.locals.dbClient = client;
-            req.app.locals.db = db;
+            req.app.dbClient = client;
+            req.app.db = db;
         };
         
         next();
     },
-    async createOrUpdate (collectionName: string, payload: any, authorization: string, db: Db): Promise<void> {
+    async createOrUpdate (collectionName: string, payload: any, db: Db, authorization?: string): Promise<void> {
         try {
             if (!payload.key) {
                 throw `Key not informed`;
             };
 
-            const collectionFullName = await getCollectionFullName(collectionName, authorization, db);
+            const collectionFullName = await getCollectionFullName(collectionName, db, authorization);
             const collection = db.collection(collectionFullName);
 
             const query = { key: payload.key };
@@ -72,9 +72,9 @@ var dbContext = {
             };
         };
     },
-    async getOneById<Type>(collectionName: string, id: string, authorization: string, db: Db): Promise<Type> {
+    async getOneById<Type>(collectionName: string, id: string, db: Db, authorization?: string): Promise<Type> {
         try {
-            const collectionFullName = await getCollectionFullName(collectionName, authorization, db);
+            const collectionFullName = await getCollectionFullName(collectionName, db, authorization);
             const collection = db.collection(collectionFullName);
             const query = { _id: convertToObjectId(id) };
             const result: Type = (await collection.findOne(query) as unknown) as Type;
@@ -89,9 +89,9 @@ var dbContext = {
             };
         };
     },
-    async deleteById(collectionName: string, id: string, authorization: string, db: Db): Promise<void> {
+    async deleteById(collectionName: string, id: string, db: Db, authorization?: string): Promise<void> {
         try {
-            const collectionFullName = await getCollectionFullName(collectionName, authorization, db);
+            const collectionFullName = await getCollectionFullName(collectionName, db, authorization);
             const collection = db.collection(collectionFullName);
             const query = { _id: convertToObjectId(id) };
             await collection.deleteOne(query);
@@ -105,9 +105,9 @@ var dbContext = {
             };
         };
     },
-    async getOneByKey<Type>(collectionName: string, key: string, authorization: string, db: Db): Promise<Type> {
+    async getOneByKey<Type>(collectionName: string, key: string, db: Db, authorization?: string): Promise<Type> {
         try {
-            const collectionFullName = await getCollectionFullName(collectionName, authorization, db);
+            const collectionFullName = await getCollectionFullName(collectionName, db, authorization);
             const collection = db.collection(collectionFullName);
             const query = { key: key };
             const result: Type = (await collection.findOne(query) as unknown) as Type;
@@ -122,9 +122,25 @@ var dbContext = {
             };
         };
     },
-    async getAll<Type>(collectionName: string, authorization: string, db: Db): Promise<Type[]> {
+    async findOne<Type>(collectionName: string, query: any, db: Db, authorization?: string): Promise<Type> {
         try {
-            const collectionFullName = await getCollectionFullName(collectionName, authorization, db);
+            const collectionFullName = await getCollectionFullName(collectionName, db, authorization);
+            const collection = db.collection(collectionFullName);
+            const result: Type = (await collection.findOne(query) as unknown) as Type;
+            return result;
+        } catch (e) {
+            console.error(e);
+            
+            if (typeof e === 'string' || e instanceof String) {
+                throw e;
+            } else {
+                throw "getOne error";
+            };
+        };
+    },
+    async getAll<Type>(collectionName: string, db: Db, authorization?: string): Promise<Type[]> {
+        try {
+            const collectionFullName = await getCollectionFullName(collectionName, db, authorization);
             const collection = db.collection(collectionFullName);
             const result: Type[] = (await collection.find().toArray() as unknown) as Type[];
             return result;

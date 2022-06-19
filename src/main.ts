@@ -28,9 +28,9 @@ app.get('/album', async (req, res) => {
     try {
         let result;
         if (req.query.key) {
-            result = await req.app.locals.albumService.getAlbumByKey(req.query.key, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+            result = await req.app.services.albumService.getAlbumByKey(req.query.key.toString(), req.header(process.env.AUTHORIZATION_HEADER_NAME));
         } else {
-            result = await req.app.locals.albumService.getAlbums(req.header(process.env.AUTHORIZATION_HEADER_NAME));
+            result = await req.app.services.albumService.getAlbums(req.header(process.env.AUTHORIZATION_HEADER_NAME));
         }
         res.json(result);
     } catch(e) {
@@ -40,7 +40,7 @@ app.get('/album', async (req, res) => {
 
 app.get('/album/:id', async (req, res) => {
     try {
-        let result = await req.app.locals.albumService.getAlbumById(req.params.id, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        let result = await req.app.services.albumService.getAlbumById(req.params.id, req.header(process.env.AUTHORIZATION_HEADER_NAME));
         res.json(result);
     } catch(e) {
         res.status(500).send(e);
@@ -49,7 +49,7 @@ app.get('/album/:id', async (req, res) => {
 
 app.post('/album', async (req, res) => {
     try {
-        var result = await req.app.locals.albumService.createOrUpdateAlbum(req.body, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        var result = await req.app.services.albumService.createOrUpdateAlbum(req.body, req.header(process.env.AUTHORIZATION_HEADER_NAME));
         res.json(result);
     } catch (e) {
         res.status(500).send(e);
@@ -58,7 +58,7 @@ app.post('/album', async (req, res) => {
 
 app.delete('/album/:id', async (req, res) => {
     try {
-        let result = await req.app.locals.albumService.deleteAlbumById(req.params.id, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        let result = await req.app.services.albumService.deleteAlbumById(req.params.id, req.header(process.env.AUTHORIZATION_HEADER_NAME));
         res.json(result);
     } catch(e) {
         res.status(500).send(e);
@@ -70,9 +70,11 @@ app.get('/figurinha', async (req, res) => {
     try {
         let result;
         if (req.query.key) {
-            result = await req.app.locals.figurinhaService.getFigurinhaByKey(req.query.key, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+            result = await req.app.services.figurinhaService.getFigurinhaByKey(req.query.key.toString(), req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        } else if (req.query.album_key) {
+            result = await req.app.services.figurinhaService.getFigurinhaByAlbumKey(req.query.album_key.toString(), req.header(process.env.AUTHORIZATION_HEADER_NAME));
         } else {
-            result = await req.app.locals.figurinhaService.getFigurinhas(req.header(process.env.AUTHORIZATION_HEADER_NAME));
+            result = await req.app.services.figurinhaService.getFigurinhas(req.header(process.env.AUTHORIZATION_HEADER_NAME));
         }
         res.json(result);
     } catch(e) {
@@ -82,7 +84,7 @@ app.get('/figurinha', async (req, res) => {
 
 app.get('/figurinha/:id', async (req, res) => {
     try {
-        let result = await req.app.locals.figurinhaService.getFigurinhaById(req.params.id, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        let result = await req.app.services.figurinhaService.getFigurinhaById(req.params.id, req.header(process.env.AUTHORIZATION_HEADER_NAME));
         res.json(result);
     } catch(e) {
         res.status(500).send(e);
@@ -91,7 +93,7 @@ app.get('/figurinha/:id', async (req, res) => {
 
 app.post('/figurinha', async (req, res) => {
     try {
-        var result = await req.app.locals.figurinhaService.createOrUpdateFigurinha(req.body, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        var result = await req.app.services.figurinhaService.createOrUpdateFigurinha(req.body, req.header(process.env.AUTHORIZATION_HEADER_NAME));
         res.json(result);
     } catch (e) {
         res.status(500).send(e);
@@ -101,9 +103,8 @@ app.post('/figurinha', async (req, res) => {
 //AUTH
 app.get('/auth/token', async (req, res) => {
     try {
-        let channel_name = req.query.channel;
-        if (channel_name) {
-            var redirectUrl = req.app.locals.tokenService.getTwitchRedirectUrl(channel_name);
+        if (req.query.channel) {
+            var redirectUrl = req.app.services.tokenService.getTwitchRedirectUrl(req.query.channel.toString());
             res.redirect(redirectUrl);
         } else {
             res.status(400).send('missing channel name');
@@ -115,8 +116,12 @@ app.get('/auth/token', async (req, res) => {
 
 app.get('/auth/callback', async (req, res) => {
     try {
-        let result = await req.app.locals.tokenService.handleTwitchCallback(req.query.code, req.query.state, req.app.locals.db);
-        res.json({ "Authorization": result });
+        if (req.query.code && req.query.state) {
+            let result = await req.app.services.tokenService.handleTwitchCallback(req.query.code.toString(), req.query.state.toString(), req.app.db);
+            res.json({ "Authorization": result });
+        } else {
+            res.status(400).json({ error: true, message: "Missing code or state" });
+        }
     } catch (e) {
         res.status(500).send(e);
     };

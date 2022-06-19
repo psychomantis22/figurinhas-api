@@ -32,23 +32,23 @@ class AlbumService {
         return { success: true, errorMessage: '' };
     };
 
-    async getAlbumByKey(key: string, authorization: string) {
-        return await dbContext.getOneByKey<albumType>(this.collectionName, key, authorization, this.db);
+    async getAlbumByKey(key: string, authorization?: string) {
+        return await dbContext.getOneByKey<albumType>(this.collectionName, key, this.db, authorization);
     };
 
-    async getAlbumById(id: string, authorization: string) {
-        return await dbContext.getOneById<albumType>(this.collectionName, id, authorization, this.db);
+    async getAlbumById(id: string, authorization?: string) {
+        return await dbContext.getOneById<albumType>(this.collectionName, id, this.db, authorization);
     };
 
-    async deleteAlbumById(id: string, authorization: string) {
-        return await dbContext.deleteById(this.collectionName, id, authorization, this.db);
+    async deleteAlbumById(id: string, authorization?: string) {
+        return await dbContext.deleteById(this.collectionName, id, this.db, authorization);
     };
 
-    async getAlbums(authorization: string) {
-        return await dbContext.getAll<albumType>(this.collectionName, authorization, this.db);
+    async getAlbums(authorization?: string) {
+        return await dbContext.getAll<albumType>(this.collectionName, this.db, authorization);
     };
 
-    async createOrUpdateAlbum(payload: albumType, authorization: string) {
+    async createOrUpdateAlbum(payload: albumType, authorization?: string) {
         payload = util.equalizePayloadWithModel(albumModel, payload);
         let validateResult = this.validate(payload);
 
@@ -63,7 +63,7 @@ class AlbumService {
             if (uploadResult.success) {
                 payload.image.base64 = this.storeImageOnDatabase ? payload.image.base64 : '';
                 payload.image.display_url = uploadResult.data.display_url;
-                return await dbContext.createOrUpdate(this.collectionName, payload, authorization, this.db);
+                return await dbContext.createOrUpdate(this.collectionName, payload, this.db, authorization);
             } else {
                 throw "Error uploading image.";
             };

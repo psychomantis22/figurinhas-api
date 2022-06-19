@@ -5,18 +5,23 @@ import FigurinhaService from './figurinhaService.js';
 
 export default {
     injectServices: async (req: Request, res: Response, next: NextFunction) => {
-        if (!req.app.locals.albumService) {
-            req.app.locals.albumService = new AlbumService(req.app.locals.db);
-        };
+        try {
+            if (!req.app.services) {
+                const albumService = new AlbumService(req.app.db);
+                const tokenService = new TokenService(req.app.db);
+                const figurinhaService = new FigurinhaService(req.app.db, albumService);
 
-        if (!req.app.locals.tokenService) {
-            req.app.locals.tokenService = new TokenService(req.app.locals.db);
-        };
-
-        if (!req.app.locals.figurinhaService) {
-            req.app.locals.figurinhaService = new FigurinhaService(req.app.locals.db, req.app.locals.albumService);
-        };
-        
-        next();
+                req.app.services = {
+                    albumService,
+                    tokenService,
+                    figurinhaService
+                };
+            };
+            
+            next();
+        } catch (e) {
+            console.error(e);
+            res.status(500).json({ error: true, message: "Failed services injection " });
+        }
     }
 }
