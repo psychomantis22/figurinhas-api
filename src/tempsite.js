@@ -1,6 +1,6 @@
 var app = angular.module('app', []);
 app.controller('ctrl', ['$scope', '$http', function($scope, $http) {
-    $scope.auth = "pmantis;qts0tnthe31i17jx8t05skkvt2f8d0";
+    $scope.auth = "";
     $scope.channelName = "";
     $scope.albuns = [];
     $scope.figurinhas = [];
