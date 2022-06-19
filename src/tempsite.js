@@ -1,4 +1,17 @@
 var app = angular.module('app', []);
+app.directive('convertToNumber', function() {
+    return {
+        require: 'ngModel',
+        link: function(scope, element, attrs, ngModel) {
+            ngModel.$parsers.push(function(val) {
+                return val != null ? parseInt(val, 10) : null;
+            });
+            ngModel.$formatters.push(function(val) {
+                return val != null ? '' + val : null;
+            });
+        }
+    };
+});
 app.controller('ctrl', ['$scope', '$http', function($scope, $http) {
     $scope.auth = "";
     $scope.channelName = "";
@@ -172,13 +185,13 @@ app.controller('ctrl', ['$scope', '$http', function($scope, $http) {
 
     $scope.rarityDesc = (rarity) => {
         switch (rarity) {
-            case "1":
+            case 1:
                 return "1 - Comum";
-            case "2":
+            case 2:
                 return "2 - Incomum";
-            case "3":
+            case 3:
                 return "3 - Rara";
-            case "4":
+            case 4:
                 return "4 - Épica";
             default:
                 return "";
@@ -221,6 +234,8 @@ app.controller('ctrl', ['$scope', '$http', function($scope, $http) {
             feedback("Informe o album da figurinha");
             return;
         };
+
+        $scope.figurinha.rarity = Number($scope.figurinha.rarity);
 
         if ($scope.figurinha.rarity < 1 || $scope.figurinha.rarity > 4) {
             feedback("Informe a raridade de 1 a 4 da figurinha");
