@@ -25,7 +25,7 @@ class TokenService {
             let userinfo: userInfoType = await this.getUserInfo(token.access_token);
 
             if (userinfo.preferred_username !== channel_name) {
-                throw `You are not authorized to access ${channel_name} channel`;
+                throw util.createError(401, `You are not authorized to access ${channel_name} channel`);
             } else {
                 token.key = channel_name;
                 token.code = code;
@@ -34,8 +34,7 @@ class TokenService {
                 return `${token.key};${token.code}`;
             };
         } catch (e) {
-            console.log(e);
-            throw "Error processing callback";
+            throw util.handleError(e, "Error processing callback");
         };
     };
 

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import AlbumService from "./albumService.js";
 import TokenService from "./tokenService.js";
 import FigurinhaService from './figurinhaService.js';
+import util from '../util/util.js';
 
 export default {
     injectServices: async (req: Request, res: Response, next: NextFunction) => {
@@ -20,8 +21,8 @@ export default {
             
             next();
         } catch (e) {
-            console.error(e);
-            res.status(500).json({ error: true, message: "Failed services injection " });
+            const error = util.handleError(e, "Service injection failed");
+            res.status(error.status).json(error);
         }
     }
 }

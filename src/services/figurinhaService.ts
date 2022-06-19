@@ -71,7 +71,7 @@ class FigurinhaService {
         let validateResult = await this.validate(payload, authorization);
 
         if (!validateResult.success) {
-            throw validateResult.errorMessage;
+            throw util.createError(400, validateResult.errorMessage);
         };
 
         try {
@@ -83,15 +83,11 @@ class FigurinhaService {
                 payload.image.display_url = uploadResult.data.display_url;
                 return await dbContext.createOrUpdate(this.collectionName, payload, this.db, authorization);
             } else {
-                throw "Error uploading image.";
+                throw util.createError(500, "Error uploading image.");
             };
         } catch (e) {
-            console.error(e);
-            if (typeof e === 'string' || e instanceof String) {
-                throw e;
-            } else {
-                throw "createOrUpdateFigurinha error";
-            };
+            const err = util.handleError(e, "createOrUpdateFigurinha error");
+            throw err;
         };
     };
 };

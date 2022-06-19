@@ -4,6 +4,7 @@ import dbContext from './database/dbContext.js';
 import mainService from './services/mainService.js';
 import path from 'path';
 import axios from 'axios';
+import util from './util/util.js';
 
 const app = express();
 app.use(express.json({limit: '1mb'}));
@@ -34,7 +35,8 @@ app.get('/album', async (req, res) => {
         }
         res.json(result);
     } catch(e) {
-        res.status(500).send(e);
+        const error = util.handleError(e, 'GET /album');
+        res.status(error.status).json(error);
     };
 });
 
@@ -43,7 +45,8 @@ app.get('/album/:id', async (req, res) => {
         let result = await req.app.services.albumService.getAlbumById(req.params.id, req.header(process.env.AUTHORIZATION_HEADER_NAME));
         res.json(result);
     } catch(e) {
-        res.status(500).send(e);
+        const error = util.handleError(e, 'GET /album/:id');
+        res.status(error.status).json(error);
     };
 });
 
@@ -52,7 +55,8 @@ app.post('/album', async (req, res) => {
         var result = await req.app.services.albumService.createOrUpdateAlbum(req.body, req.header(process.env.AUTHORIZATION_HEADER_NAME));
         res.json(result);
     } catch (e) {
-        res.status(500).send(e);
+        const error = util.handleError(e, 'POST /album');
+        res.status(error.status).json(error);
     };
 });
 
@@ -61,7 +65,8 @@ app.delete('/album/:id', async (req, res) => {
         let result = await req.app.services.albumService.deleteAlbumById(req.params.id, req.header(process.env.AUTHORIZATION_HEADER_NAME));
         res.json(result);
     } catch(e) {
-        res.status(500).send(e);
+        const error = util.handleError(e, 'DELETE /album/:id');
+        res.status(error.status).json(error);
     };
 });
 
@@ -78,7 +83,8 @@ app.get('/figurinha', async (req, res) => {
         }
         res.json(result);
     } catch(e) {
-        res.status(500).send(e);
+        const error = util.handleError(e, 'GET /figurinha');
+        res.status(error.status).json(error);
     };
 });
 
@@ -87,7 +93,8 @@ app.get('/figurinha/:id', async (req, res) => {
         let result = await req.app.services.figurinhaService.getFigurinhaById(req.params.id, req.header(process.env.AUTHORIZATION_HEADER_NAME));
         res.json(result);
     } catch(e) {
-        res.status(500).send(e);
+        const error = util.handleError(e, 'GET /figurinha/:id');
+        res.status(error.status).json(error);
     };
 });
 
@@ -96,7 +103,8 @@ app.post('/figurinha', async (req, res) => {
         var result = await req.app.services.figurinhaService.createOrUpdateFigurinha(req.body, req.header(process.env.AUTHORIZATION_HEADER_NAME));
         res.json(result);
     } catch (e) {
-        res.status(500).send(e);
+        const error = util.handleError(e, 'POST /figurinha');
+        res.status(error.status).json(error);
     };
 });
 
@@ -110,7 +118,8 @@ app.get('/auth/token', async (req, res) => {
             res.status(400).send('missing channel name');
         };
     } catch (e) {
-        res.status(500).send(e);
+        const error = util.handleError(e, 'GET /auth/token');
+        res.status(error.status).json(error);
     };
 });
 
@@ -123,7 +132,8 @@ app.get('/auth/callback', async (req, res) => {
             res.status(400).json({ error: true, message: "Missing code or state" });
         }
     } catch (e) {
-        res.status(500).send(e);
+        const error = util.handleError(e, 'GET /auth/callback');
+        res.status(error.status).json(error);
     };
 });
 
