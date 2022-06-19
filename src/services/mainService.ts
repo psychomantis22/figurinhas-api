@@ -10,7 +10,7 @@ export default {
             if (!req.app.services) {
                 const albumService = new AlbumService(req.app.db);
                 const tokenService = new TokenService(req.app.db);
-                const figurinhaService = new FigurinhaService(req.app.db, albumService);
+                const figurinhaService = new FigurinhaService(req.app.db);
 
                 req.app.services = {
                     albumService,

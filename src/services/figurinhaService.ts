@@ -8,18 +8,16 @@ import ImageBBService from './imgbbService.js';
 
 class FigurinhaService {
     db: Db;
-    albumService: AlbumService
     collectionName: string;
     storeImageOnDatabase: boolean;
 
-    constructor(db: Db, albumService: AlbumService) {
+    constructor(db: Db) {
         this.db = db;
-        this.albumService = albumService;
         this.collectionName = process.env.FIGURINHAS_COLLECTION_NAME;
         this.storeImageOnDatabase = process.env.STORE_IMAGE_ON_DATABASE;
     };
 
-    async validate(figurinha: figurinhaType, authorization?: string) {
+    async validate(figurinha: figurinhaType, albumService: AlbumService, authorization?: string) {
         if (!figurinha.key) {
             return { success: false, errorMessage: 'Missing key' };
         };
@@ -40,7 +38,7 @@ class FigurinhaService {
             return { success: false, errorMessage: 'Invalid rarity' };
         };
 
-        const album = await this.albumService.getAlbumByKey(figurinha.album_key, authorization);
+        const album = await albumService.getAlbumByKey(figurinha.album_key, authorization);
 
         if (!album) {
             return { success: false, errorMessage: `Album with key ${figurinha.album_key} not found` };
@@ -55,20 +53,24 @@ class FigurinhaService {
 
     async getFigurinhaByAlbumKey(album_key: string, authorization?: string) {
         let figurinhaQuery = { album_key };
-        return await dbContext.findOne<figurinhaType>(this.collectionName, figurinhaQuery, this.db, authorization);
+        return await dbContext.find<figurinhaType>(this.collectionName, figurinhaQuery, this.db, authorization);
     };
 
     async getFigurinhaById(id: string, authorization?: string) {
         return await dbContext.getOneById<figurinhaType>(this.collectionName, id, this.db, authorization);
     };
 
+    async deleteFigurinhaById(id: string, authorization?: string) {
+        return await dbContext.deleteById(this.collectionName, id, this.db, authorization);
+    };
+
     async getFigurinhas(authorization?: string) {
         return await dbContext.getAll<figurinhaType>(this.collectionName, this.db, authorization);
     };
 
-    async createOrUpdateFigurinha(payload: figurinhaType, authorization?: string) {
+    async createOrUpdateFigurinha(payload: figurinhaType, albumService: AlbumService, authorization?: string) {
         payload = util.equalizePayloadWithModel(figurinhaModel, payload);
-        let validateResult = await this.validate(payload, authorization);
+        let validateResult = await this.validate(payload, albumService, authorization);
 
         if (!validateResult.success) {
             throw util.createError(400, validateResult.errorMessage);

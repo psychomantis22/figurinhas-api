@@ -119,11 +119,22 @@ var dbContext = {
             throw err;
         };
     },
+    async find<Type>(collectionName: string, query: any, db: Db, authorization?: string): Promise<Array<Type>> {
+        try {
+            const collectionFullName = await getCollectionFullName(collectionName, db, authorization);
+            const collection = db.collection(collectionFullName);
+            const result: Array<Type> = (await collection.find(query).project({ 'image.base64': 0 }).toArray() as unknown) as Array<Type>;
+            return result;
+        } catch (e) {
+            const err = util.handleError(e, "find error");
+            throw err;
+        };
+    },
     async getAll<Type>(collectionName: string, db: Db, authorization?: string): Promise<Type[]> {
         try {
             const collectionFullName = await getCollectionFullName(collectionName, db, authorization);
             const collection = db.collection(collectionFullName);
-            const result: Type[] = (await collection.find().toArray() as unknown) as Type[];
+            const result: Type[] = (await collection.find().project({ 'image.base64': 0 }).toArray() as unknown) as Type[];
             return result;
         } catch (e) {
             const err = util.handleError(e, "getAll error");

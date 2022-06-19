@@ -62,7 +62,7 @@ app.post('/album', async (req, res) => {
 
 app.delete('/album/:id', async (req, res) => {
     try {
-        let result = await req.app.services.albumService.deleteAlbumById(req.params.id, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        let result = await req.app.services.albumService.deleteAlbumById(req.params.id, req.app.services.figurinhaService, req.header(process.env.AUTHORIZATION_HEADER_NAME));
         res.json(result);
     } catch(e) {
         const error = util.handleError(e, 'DELETE /album/:id');
@@ -80,7 +80,7 @@ app.get('/figurinha', async (req, res) => {
             result = await req.app.services.figurinhaService.getFigurinhaByAlbumKey(req.query.album_key.toString(), req.header(process.env.AUTHORIZATION_HEADER_NAME));
         } else {
             result = await req.app.services.figurinhaService.getFigurinhas(req.header(process.env.AUTHORIZATION_HEADER_NAME));
-        }
+        };
         res.json(result);
     } catch(e) {
         const error = util.handleError(e, 'GET /figurinha');
@@ -100,10 +100,20 @@ app.get('/figurinha/:id', async (req, res) => {
 
 app.post('/figurinha', async (req, res) => {
     try {
-        var result = await req.app.services.figurinhaService.createOrUpdateFigurinha(req.body, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        var result = await req.app.services.figurinhaService.createOrUpdateFigurinha(req.body, req.app.services.albumService, req.header(process.env.AUTHORIZATION_HEADER_NAME));
         res.json(result);
     } catch (e) {
         const error = util.handleError(e, 'POST /figurinha');
+        res.status(error.status).json(error);
+    };
+});
+
+app.delete('/figurinha/:id', async (req, res) => {
+    try {
+        let result = await req.app.services.figurinhaService.deleteFigurinhaById(req.params.id, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        res.json(result);
+    } catch(e) {
+        const error = util.handleError(e, 'DELETE /figurinha/:id');
         res.status(error.status).json(error);
     };
 });
@@ -115,7 +125,8 @@ app.get('/auth/token', async (req, res) => {
             var redirectUrl = req.app.services.tokenService.getTwitchRedirectUrl(req.query.channel.toString());
             res.redirect(redirectUrl);
         } else {
-            res.status(400).send('missing channel name');
+            const error = util.createError(400, "Channel name missing");
+            res.status(error.status).json(error);
         };
     } catch (e) {
         const error = util.handleError(e, 'GET /auth/token');

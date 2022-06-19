@@ -3,6 +3,7 @@ import { Db } from 'mongodb'
 import dbContext from '../database/dbContext.js';
 import albumModel, { albumType } from '../models/albumModel.js';
 import util from '../util/util.js';
+import FigurinhaService from './figurinhaService.js';
 import ImageBBService from './imgbbService.js';
 
 class AlbumService {
@@ -40,8 +41,15 @@ class AlbumService {
         return await dbContext.getOneById<albumType>(this.collectionName, id, this.db, authorization);
     };
 
-    async deleteAlbumById(id: string, authorization?: string) {
-        return await dbContext.deleteById(this.collectionName, id, this.db, authorization);
+    async deleteAlbumById(id: string, figurinhaService: FigurinhaService, authorization?: string) {
+        const album = await this.getAlbumById(id, authorization);
+        const figurinhas = await figurinhaService.getFigurinhaByAlbumKey(album.key, authorization);
+
+        if (figurinhas.length == 0) {
+            return await dbContext.deleteById(this.collectionName, id, this.db, authorization);
+        } else {
+            throw util.createError(409, 'Album possui figurinhas e não pode ser excluído');
+        };
     };
 
     async getAlbums(authorization?: string) {
