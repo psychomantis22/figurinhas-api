@@ -20,9 +20,13 @@ app.get('/tempsite.js', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'src/tempsite.js'));
 });
 
+app.get('/favicon.ico', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'src/static/favicon.ico'));
+});
+
 //ALBUM
 app.get('/album/image/default', (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'src/images/albumDefault.png'));
+    res.sendFile(path.join(process.cwd(), 'src/static/albumDefault.png'));
 });
 
 app.get('/album', async (req, res) => {
