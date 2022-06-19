@@ -2,21 +2,27 @@ import { Request, Response, NextFunction } from 'express'
 import AlbumService from "./albumService.js";
 import TokenService from "./tokenService.js";
 import FigurinhaService from './figurinhaService.js';
+import util from '../util/util.js';
 
 export default {
     injectServices: async (req: Request, res: Response, next: NextFunction) => {
-        if (!req.app.locals.albumService) {
-            req.app.locals.albumService = new AlbumService(req.app.locals.db);
-        };
+        try {
+            if (!req.app.services) {
+                const albumService = new AlbumService(req.app.db);
+                const tokenService = new TokenService(req.app.db);
+                const figurinhaService = new FigurinhaService(req.app.db);
 
-        if (!req.app.locals.tokenService) {
-            req.app.locals.tokenService = new TokenService(req.app.locals.db);
-        };
-
-        if (!req.app.locals.figurinhaService) {
-            req.app.locals.figurinhaService = new FigurinhaService(req.app.locals.db, req.app.locals.albumService);
-        };
-        
-        next();
+                req.app.services = {
+                    albumService,
+                    tokenService,
+                    figurinhaService
+                };
+            };
+            
+            next();
+        } catch (e) {
+            const error = util.handleError(e, "Service injection failed");
+            res.status(error.status).json(error);
+        }
     }
 }

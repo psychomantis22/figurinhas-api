@@ -4,6 +4,7 @@ import dbContext from './database/dbContext.js';
 import mainService from './services/mainService.js';
 import path from 'path';
 import axios from 'axios';
+import util from './util/util.js';
 
 const app = express();
 app.use(express.json({limit: '1mb'}));
@@ -28,40 +29,44 @@ app.get('/album', async (req, res) => {
     try {
         let result;
         if (req.query.key) {
-            result = await req.app.locals.albumService.getAlbumByKey(req.query.key, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+            result = await req.app.services.albumService.getAlbumByKey(req.query.key.toString(), req.header(process.env.AUTHORIZATION_HEADER_NAME));
         } else {
-            result = await req.app.locals.albumService.getAlbums(req.header(process.env.AUTHORIZATION_HEADER_NAME));
+            result = await req.app.services.albumService.getAlbums(req.header(process.env.AUTHORIZATION_HEADER_NAME));
         }
         res.json(result);
     } catch(e) {
-        res.status(500).send(e);
+        const error = util.handleError(e, 'GET /album');
+        res.status(error.status).json(error);
     };
 });
 
 app.get('/album/:id', async (req, res) => {
     try {
-        let result = await req.app.locals.albumService.getAlbumById(req.params.id, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        let result = await req.app.services.albumService.getAlbumById(req.params.id, req.header(process.env.AUTHORIZATION_HEADER_NAME));
         res.json(result);
     } catch(e) {
-        res.status(500).send(e);
+        const error = util.handleError(e, 'GET /album/:id');
+        res.status(error.status).json(error);
     };
 });
 
 app.post('/album', async (req, res) => {
     try {
-        var result = await req.app.locals.albumService.createOrUpdateAlbum(req.body, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        var result = await req.app.services.albumService.createOrUpdateAlbum(req.body, req.header(process.env.AUTHORIZATION_HEADER_NAME));
         res.json(result);
     } catch (e) {
-        res.status(500).send(e);
+        const error = util.handleError(e, 'POST /album');
+        res.status(error.status).json(error);
     };
 });
 
 app.delete('/album/:id', async (req, res) => {
     try {
-        let result = await req.app.locals.albumService.deleteAlbumById(req.params.id, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        let result = await req.app.services.albumService.deleteAlbumById(req.params.id, req.app.services.figurinhaService, req.header(process.env.AUTHORIZATION_HEADER_NAME));
         res.json(result);
     } catch(e) {
-        res.status(500).send(e);
+        const error = util.handleError(e, 'DELETE /album/:id');
+        res.status(error.status).json(error);
     };
 });
 
@@ -70,55 +75,76 @@ app.get('/figurinha', async (req, res) => {
     try {
         let result;
         if (req.query.key) {
-            result = await req.app.locals.figurinhaService.getFigurinhaByKey(req.query.key, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+            result = await req.app.services.figurinhaService.getFigurinhaByKey(req.query.key.toString(), req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        } else if (req.query.album_key) {
+            result = await req.app.services.figurinhaService.getFigurinhaByAlbumKey(req.query.album_key.toString(), req.header(process.env.AUTHORIZATION_HEADER_NAME));
         } else {
-            result = await req.app.locals.figurinhaService.getFigurinhas(req.header(process.env.AUTHORIZATION_HEADER_NAME));
-        }
+            result = await req.app.services.figurinhaService.getFigurinhas(req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        };
         res.json(result);
     } catch(e) {
-        res.status(500).send(e);
+        const error = util.handleError(e, 'GET /figurinha');
+        res.status(error.status).json(error);
     };
 });
 
 app.get('/figurinha/:id', async (req, res) => {
     try {
-        let result = await req.app.locals.figurinhaService.getFigurinhaById(req.params.id, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        let result = await req.app.services.figurinhaService.getFigurinhaById(req.params.id, req.header(process.env.AUTHORIZATION_HEADER_NAME));
         res.json(result);
     } catch(e) {
-        res.status(500).send(e);
+        const error = util.handleError(e, 'GET /figurinha/:id');
+        res.status(error.status).json(error);
     };
 });
 
 app.post('/figurinha', async (req, res) => {
     try {
-        var result = await req.app.locals.figurinhaService.createOrUpdateFigurinha(req.body, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        var result = await req.app.services.figurinhaService.createOrUpdateFigurinha(req.body, req.app.services.albumService, req.header(process.env.AUTHORIZATION_HEADER_NAME));
         res.json(result);
     } catch (e) {
-        res.status(500).send(e);
+        const error = util.handleError(e, 'POST /figurinha');
+        res.status(error.status).json(error);
+    };
+});
+
+app.delete('/figurinha/:id', async (req, res) => {
+    try {
+        let result = await req.app.services.figurinhaService.deleteFigurinhaById(req.params.id, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        res.json(result);
+    } catch(e) {
+        const error = util.handleError(e, 'DELETE /figurinha/:id');
+        res.status(error.status).json(error);
     };
 });
 
 //AUTH
 app.get('/auth/token', async (req, res) => {
     try {
-        let channel_name = req.query.channel;
-        if (channel_name) {
-            var redirectUrl = req.app.locals.tokenService.getTwitchRedirectUrl(channel_name);
+        if (req.query.channel) {
+            var redirectUrl = req.app.services.tokenService.getTwitchRedirectUrl(req.query.channel.toString());
             res.redirect(redirectUrl);
         } else {
-            res.status(400).send('missing channel name');
+            const error = util.createError(400, "Channel name missing");
+            res.status(error.status).json(error);
         };
     } catch (e) {
-        res.status(500).send(e);
+        const error = util.handleError(e, 'GET /auth/token');
+        res.status(error.status).json(error);
     };
 });
 
 app.get('/auth/callback', async (req, res) => {
     try {
-        let result = await req.app.locals.tokenService.handleTwitchCallback(req.query.code, req.query.state, req.app.locals.db);
-        res.json({ "Authorization": result });
+        if (req.query.code && req.query.state) {
+            let result = await req.app.services.tokenService.handleTwitchCallback(req.query.code.toString(), req.query.state.toString(), req.app.db);
+            res.json({ "Authorization": result });
+        } else {
+            res.status(400).json({ error: true, message: "Missing code or state" });
+        }
     } catch (e) {
-        res.status(500).send(e);
+        const error = util.handleError(e, 'GET /auth/callback');
+        res.status(error.status).json(error);
     };
 });
 

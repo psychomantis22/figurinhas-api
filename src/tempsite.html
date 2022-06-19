@@ -5,7 +5,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Figurinhas</title>
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.3/angular.min.js"></script>
     <script src="./tempsite.js"></script>
@@ -19,13 +21,15 @@
             max-width: 240px;
             max-height: 360px;
         }
+
+        div {
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body ng-app="app" ng-controller="ctrl">
     <input type="file" class="form-control-file" style="display:none;" id="imageDialog">
     <div class="container">
-        <div>{{feedback}}</div>
-        <hr />
         <div>
             www.twitch.tv/<input type="text" ng-model="channelName" />
             <button ng-click="getAuth()">get auth</button>
@@ -40,7 +44,7 @@
             <button ng-click="adicionarAlbum()">Adicionar album</button>
         </div>
         <hr />
-        <div class="row">
+        <div class="row" ng-show="!editFigurinha && figurinhas.length == 0">
             <div class="col-sm-4" ng-repeat="(key, album) in albuns">
                 <div class="card" style="width: 240px;">
                     <img class="card-img-top" style="width:240px; height: 360px;" ng-src="{{album.image.display_url}}">
@@ -49,24 +53,75 @@
                         <p class="card-text">&nbsp;</p>
                         <a href="#" ng-click="editarAlbum(album)" class="btn btn-warning">Editar</a>
                         <a href="#" ng-click="deleteAlbum(album._id)" class="btn btn-danger">Excluir</a>
+                        <a href="#" ng-click="exibirFigurinhas(album)" class="btn btn-primary">Figurinhas</a>
                     </div>
                 </div>
             </div>
         </div>
-        <div ng-show="editAlbum">
-            <div class="form-group">
-                <label for="album-key">Chave</label>
-                <input type="text" class="form-control" id="album-key" placeholder="Identificador do album" ng-model="album.key" ng-disabled="album._id">
+        <div class="row" ng-show="!editFigurinha">
+            <div ng-show="selectedAlbum.key != ''">
+                <h1>Album {{selectedAlbum.name}}</h1>
+                <div class="font-italic">{{selectedAlbum.key}}</div>
+                <div ng-show="figurinhas.length == 0">Nenhuma figurinha neste album</div>
+                <div class="row col-xs-12">
+                    <button class="btn btn-primary" ng-click="adicionarFigurinha(selectedAlbum)">Adicionar figurinha</button>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="album-name">Nome</label>
-                <input type="text" class="form-control" id="album-name" placeholder="Nome do album" ng-model="album.name">
+            <div class="col-sm-4" ng-repeat="(key, figurinha) in figurinhas">
+                <div class="card" style="width: 240px;">
+                    <img class="card-img-top" style="width:240px; height: 360px; filter: drop-shadow(10px 10px 4px #c0c0c0);" ng-src="{{figurinha.image.display_url}}">
+                    <div class="card-body">
+                        <h3 class="card-title">{{figurinha.name}}</h3>
+                        <p class="card-text">{{rarityDesc(figurinha.rarity)}}</p>
+                        <a href="#" ng-click="editarFigurinha(figurinha, selectedAlbum)" class="btn btn-warning">Editar</a>
+                        <a href="#" ng-click="deleteFigurinha(figurinha._id)" class="btn btn-danger">Excluir</a>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
+        </div>
+        <div ng-show="editAlbum || editFigurinha" class="row">
+            <div class="form-group col-xs-3">
                 <canvas ng-click="showFileDialog()" id="canvas"></canvas>
             </div>
-            <button class="btn btn-primary" ng-click="salvarAlbum()">Salvar</button>
+            <div ng-show="editAlbum" class="col-xs-9">
+                <div class="form-group col-xs-12">
+                    <label for="album-key">Chave</label>
+                    <input type="text" class="form-control" id="album-key" placeholder="Identificador do album" ng-model="album.key" ng-disabled="album._id">
+                </div>
+                <div class="form-group col-xs-12">
+                    <label for="album-name">Nome</label>
+                    <input type="text" class="form-control" id="album-name" placeholder="Nome do album" ng-model="album.name">
+                </div>
+            </div>
+            <div ng-show="editFigurinha" class="col-xs-9">
+                <div class="form-group col-xs-12">
+                    <label for="figurinha-key">Chave</label>
+                    <input type="text" class="form-control" id="figurinha-key" placeholder="Identificador da figurinha" ng-model="figurinha.key" ng-disabled="figurinha._id">
+                </div>
+                <div class="form-group col-xs-12">
+                    <label for="figurinha-album">Chave do Album</label>
+                    <input type="text" class="form-control" id="figurinha-album" placeholder="Chave do Album da figurinha" ng-model="figurinha.album_key">
+                </div>
+                <div class="form-group col-xs-8">
+                    <label for="figurinha-name">Nome</label>
+                    <input type="text" class="form-control" id="figurinha-name" placeholder="Nome da figurinha" ng-model="figurinha.name">
+                </div>
+                <div class="form-group col-xs-4">
+                    <label for="figurinha-raridade">Raridade</label>
+                    <select class="form-control" id="figurinha-raridade" placeholder="Raridade da figurinha" ng-model="figurinha.rarity">
+                        <option value="1" selected>1 - Comum</option>
+                        <option value="2">2 - Incomum</option>
+                        <option value="3">3 - Rara</option>
+                        <option value="4">4 - Épica</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-xs-12">
+                <button class="btn btn-primary" ng-show="editAlbum" ng-click="salvarAlbum()">Salvar Album</button>
+                <button class="btn btn-primary" ng-show="editFigurinha" ng-click="salvarFigurinha()">Salvar Figurinha</button>
+            </div>
         </div>
     </div>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>
 </html>

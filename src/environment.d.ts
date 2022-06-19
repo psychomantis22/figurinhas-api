@@ -1,3 +1,15 @@
+import 'express';
+import { Db, MongoClient } from 'mongodb';
+import AlbumService from './services/albumService';
+import FigurinhaService from './services/figurinhaService';
+import TokenService from './services/tokenService';
+
+interface AppServices {
+    figurinhaService: FigurinhaService;
+    albumService: AlbumService;
+    tokenService: TokenService;
+}
+
 declare global {
     namespace NodeJS {
         interface ProcessEnv {
@@ -14,6 +26,13 @@ declare global {
             TWITCH_CLIENT_ID: string;
             TWITCH_CLIENT_SECRET: string;
             TWITCH_REDIRECT_URL: string;
+        }
+    }
+    namespace Express {
+        interface Application {
+            db: Db;
+            dbClient: MongoClient;
+            services: AppServices;
         }
     }
 }

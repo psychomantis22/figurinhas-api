@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import axios from 'axios';
 import FormData from 'form-data';
+import util from '../util/util.js';
 
 const IMG_API_UPLOAD_URI = process.env.IMG_API_UPLOAD_URI;
 const IMG_API_KEY = process.env.IMG_API_KEY;
@@ -26,7 +27,7 @@ class ImageBBService {
 
             return result.data;
         } else {
-            throw "missing base64";
+            throw util.createError(400, "missing base64");
         }    
     };
 };

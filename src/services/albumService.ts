@@ -3,6 +3,7 @@ import { Db } from 'mongodb'
 import dbContext from '../database/dbContext.js';
 import albumModel, { albumType } from '../models/albumModel.js';
 import util from '../util/util.js';
+import FigurinhaService from './figurinhaService.js';
 import ImageBBService from './imgbbService.js';
 
 class AlbumService {
@@ -32,28 +33,35 @@ class AlbumService {
         return { success: true, errorMessage: '' };
     };
 
-    async getAlbumByKey(key: string, authorization: string) {
-        return await dbContext.getOneByKey<albumType>(this.collectionName, key, authorization, this.db);
+    async getAlbumByKey(key: string, authorization?: string) {
+        return await dbContext.getOneByKey<albumType>(this.collectionName, key, this.db, authorization);
     };
 
-    async getAlbumById(id: string, authorization: string) {
-        return await dbContext.getOneById<albumType>(this.collectionName, id, authorization, this.db);
+    async getAlbumById(id: string, authorization?: string) {
+        return await dbContext.getOneById<albumType>(this.collectionName, id, this.db, authorization);
     };
 
-    async deleteAlbumById(id: string, authorization: string) {
-        return await dbContext.deleteById(this.collectionName, id, authorization, this.db);
+    async deleteAlbumById(id: string, figurinhaService: FigurinhaService, authorization?: string) {
+        const album = await this.getAlbumById(id, authorization);
+        const figurinhas = await figurinhaService.getFigurinhaByAlbumKey(album.key, authorization);
+
+        if (figurinhas.length == 0) {
+            return await dbContext.deleteById(this.collectionName, id, this.db, authorization);
+        } else {
+            throw util.createError(409, 'Album possui figurinhas e não pode ser excluído');
+        };
     };
 
-    async getAlbums(authorization: string) {
-        return await dbContext.getAll<albumType>(this.collectionName, authorization, this.db);
+    async getAlbums(authorization?: string) {
+        return await dbContext.getAll<albumType>(this.collectionName, this.db, authorization);
     };
 
-    async createOrUpdateAlbum(payload: albumType, authorization: string) {
+    async createOrUpdateAlbum(payload: albumType, authorization?: string) {
         payload = util.equalizePayloadWithModel(albumModel, payload);
         let validateResult = this.validate(payload);
 
         if (!validateResult.success) {
-            throw validateResult.errorMessage;
+            throw util.createError(400, validateResult.errorMessage);
         };
 
         try {
@@ -63,17 +71,13 @@ class AlbumService {
             if (uploadResult.success) {
                 payload.image.base64 = this.storeImageOnDatabase ? payload.image.base64 : '';
                 payload.image.display_url = uploadResult.data.display_url;
-                return await dbContext.createOrUpdate(this.collectionName, payload, authorization, this.db);
+                return await dbContext.createOrUpdate(this.collectionName, payload, this.db, authorization);
             } else {
-                throw "Error uploading image.";
+                throw util.createError(500, "Error uploading image.");
             };
         } catch (e) {
-            console.error(e);
-            if (typeof e === 'string' || e instanceof String) {
-                throw e;
-            } else {
-                throw "createOrUpdateAlbum error";
-            };
+            const err = util.handleError(e, "createOrUpdateAlbum error");
+            throw err;
         };
     };
 };
