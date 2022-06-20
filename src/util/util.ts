@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { AxiosResponse } from 'axios';
 
 class ErrorType {
     status: number;
@@ -54,5 +54,11 @@ export default {
     createError(status: number, message?: string) {
         let error: ErrorType = new ErrorType(status, true, message ?? '');
         return error;
-    }
+    },
+
+    ensureAxiosSuccessCode(result: AxiosResponse, messageInCaseOfError?: string) {
+        if (result.status !== 200) {
+            throw this.createError(result.status, messageInCaseOfError ?? result.statusText);
+        };
+    },
 };

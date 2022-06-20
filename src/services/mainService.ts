@@ -3,6 +3,7 @@ import AlbumService from "./albumService.js";
 import TokenService from "./tokenService.js";
 import FigurinhaService from './figurinhaService.js';
 import util from '../util/util.js';
+import TwitchService from './twitchService.js';
 
 export default {
     injectServices: async (req: Request, res: Response, next: NextFunction) => {
@@ -11,11 +12,13 @@ export default {
                 const albumService = new AlbumService(req.app.db);
                 const tokenService = new TokenService(req.app.db);
                 const figurinhaService = new FigurinhaService(req.app.db);
+                const twitchService = new TwitchService(req.app.db);
 
                 req.app.services = {
                     albumService,
                     tokenService,
-                    figurinhaService
+                    figurinhaService,
+                    twitchService
                 };
             };
             

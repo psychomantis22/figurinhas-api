@@ -1,10 +1,8 @@
 import 'dotenv/config'
-import axios from 'axios';
 import { Db } from 'mongodb'
-import dbContext from '../database/dbContext.js';
 import tokenModel, { tokenType } from '../models/tokenModel.js';
-import userInfoModel, { userInfoType } from '../models/userInfoModel.js';
 import util from '../util/util.js';
+import TwitchService from './twitchService.js';
 
 class TokenService {
     db: Db;
@@ -15,32 +13,10 @@ class TokenService {
         this.collectionName = process.env.TOKEN_COLLECTION_NAME;
     };
 
-    getTwitchRedirectUrl(channel_name: string) {
-        return `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=${process.env.TWITCH_REDIRECT_URL}&state=${channel_name}&scope=channel%3Aread%3Aredemptions+channel%3Amanage%3Aredemptions`;
-    };
-
-    async handleTwitchCallback(code: string, channel_name: string, db: Db) {
-        try {
-            let token: tokenType = await this.getToken(code);
-            let userinfo: userInfoType = await this.getUserInfo(token.access_token);
-
-            if (userinfo.preferred_username !== channel_name) {
-                throw util.createError(401, `You are not authorized to access ${channel_name} channel`);
-            } else {
-                token.key = channel_name;
-                token.code = code;
-                await this.saveToken(token, db);
-                
-                return `${token.key};${token.code}`;
-            };
-        } catch (e) {
-            throw util.handleError(e, "Error processing callback");
-        };
-    };
-
     async saveToken(payload: tokenType, db: Db): Promise<void> {
         payload = util.equalizePayloadWithModel(tokenModel, payload);
 
+        payload.created_at = new Date();
         const collection = db.collection(this.collectionName);
         const query = { key: payload.key };
         const update = { $set: payload};
@@ -48,28 +24,26 @@ class TokenService {
         await collection.updateOne(query, update, options);
     };
 
-    async getUserInfo(access_token: string) {
-        let result = await axios.get('https://id.twitch.tv/oauth2/userinfo', {
-            headers: {
-                "Authorization": `Bearer ${access_token}`
-            }
-        });
+    async getToken(db: Db, twitchService: TwitchService, authorization?: string) {
+        if (authorization && authorization.includes(';')) {
+            let channel_name = authorization.split(';')[0];
+            let code = authorization.split(';')[1];
 
-        return result.data;
-    };
+            const collection = db.collection(this.collectionName);
+            const query = { key: channel_name, code: code };
+            let result: tokenType = ((await collection.findOne(query)) as unknown) as tokenType;
 
-    async getToken(code: string) {
-        let payload = {
-            client_id: process.env.TWITCH_CLIENT_ID,
-            client_secret: process.env.TWITCH_CLIENT_SECRET,
-            code: code,
-            grant_type: 'authorization_code',
-            redirect_uri: process.env.TWITCH_REDIRECT_URL
+            const refreshedToken: tokenType = await twitchService.refreshTokenIfNecessary(result);
+
+            if (refreshedToken) {
+                result = { ...result, ...refreshedToken };
+                await this.saveToken(result, db);
+            };
+
+            return result;
+        } else {
+            throw util.createError(400, 'Missing authorization');
         };
-
-        let result = await axios.post('https://id.twitch.tv/oauth2/token', payload);
-
-        return result.data;
     };
 };
 
