@@ -13,7 +13,7 @@ app.directive('convertToNumber', function() {
     };
 });
 app.controller('ctrl', ['$scope', '$http', function($scope, $http) {
-    $scope.auth = "pmantis;sswkgp89czo324k2iarjihvv7zgb35";
+    $scope.auth = "";
     $scope.channelName = "";
     $scope.albuns = [];
     $scope.figurinhas = [];
