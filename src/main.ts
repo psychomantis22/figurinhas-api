@@ -126,7 +126,7 @@ app.delete('/figurinha/:id', async (req, res) => {
 app.get('/auth/token', async (req, res) => {
     try {
         if (req.query.channel) {
-            var redirectUrl = req.app.services.tokenService.getTwitchRedirectUrl(req.query.channel.toString());
+            var redirectUrl = req.app.services.twitchService.getTwitchRedirectUrl(req.query.channel.toString());
             res.redirect(redirectUrl);
         } else {
             const error = util.createError(400, "Channel name missing");
@@ -141,7 +141,7 @@ app.get('/auth/token', async (req, res) => {
 app.get('/auth/callback', async (req, res) => {
     try {
         if (req.query.code && req.query.state) {
-            let result = await req.app.services.tokenService.handleTwitchCallback(req.query.code.toString(), req.query.state.toString(), req.app.db);
+            let result = await req.app.services.twitchService.handleTwitchCallback(req.query.code.toString(), req.query.state.toString(), req.app.services.tokenService, req.app.db);
             res.json({ "Authorization": result });
         } else {
             res.status(400).json({ error: true, message: "Missing code or state" });
@@ -150,6 +150,16 @@ app.get('/auth/callback', async (req, res) => {
         const error = util.handleError(e, 'GET /auth/callback');
         res.status(error.status).json(error);
     };
+});
+
+app.get('/rewards', async (req, res) => {
+    try {
+        var result = await req.app.services.twitchService.getCustomRewards(req.app.services.tokenService, req.header(process.env.AUTHORIZATION_HEADER_NAME));
+        res.json(result);
+    } catch (e) {
+        const error = util.handleError(e, 'GET /rewards');
+        res.status(error.status).json(error);
+    }
 });
 
 //INICIANDO EXPRESS

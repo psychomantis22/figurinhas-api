@@ -26,6 +26,10 @@ class AlbumService {
             return { success: false, errorMessage: 'Missing name' };
         };
 
+        if (!album.reward_id) {
+            return { success: false, errorMessage: 'Missing reward' };
+        };
+
         if (!album.image.base64) {
             return { success: false, errorMessage: 'Missing image' };
         };

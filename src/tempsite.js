@@ -19,6 +19,7 @@ app.controller('ctrl', ['$scope', '$http', function($scope, $http) {
     $scope.figurinhas = [];
     $scope.editAlbum = false;
     $scope.hasImageChanged = false;
+    $scope.rewards = [];
 
     getMessages = (obj) => {
         var result = [];
@@ -52,6 +53,7 @@ app.controller('ctrl', ['$scope', '$http', function($scope, $http) {
     $scope.emptyAlbum = {
         key: '',
         name: '',
+        reward_id: '',
         image: {
             base64: '',
             display_url: ''
@@ -325,6 +327,20 @@ app.controller('ctrl', ['$scope', '$http', function($scope, $http) {
         });
     };
 
+    var loadRewards = () => {
+        $http.get('/rewards', {
+            headers: {'Authorization': $scope.auth}
+        }).then(function(result) {
+            if (result.status == 200) {
+                $scope.rewards = result.data;
+            } else {
+                feedback(result.data);
+            };
+        }).catch(function (e) {
+            feedback(e.data);
+        });
+    };
+
     var clear = () => {
         $scope.albuns = [];
         loadUrlIntoCanvas("/album/image/default");
@@ -335,6 +351,7 @@ app.controller('ctrl', ['$scope', '$http', function($scope, $http) {
         $scope.selectedAlbum = { ...$scope.emptyAlbum };
         $scope.figurinha = { ...$scope.emptyFigurinha };
         $scope.figurinhas = [];
+        loadRewards();
     };
 
     $scope.init = function() {

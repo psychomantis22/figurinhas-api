@@ -3,11 +3,13 @@ import { Db, MongoClient } from 'mongodb';
 import AlbumService from './services/albumService';
 import FigurinhaService from './services/figurinhaService';
 import TokenService from './services/tokenService';
+import TwitchService from './services/twitchService';
 
 interface AppServices {
     figurinhaService: FigurinhaService;
     albumService: AlbumService;
     tokenService: TokenService;
+    twitchService: TwitchService;
 }
 
 declare global {
@@ -26,6 +28,7 @@ declare global {
             TWITCH_CLIENT_ID: string;
             TWITCH_CLIENT_SECRET: string;
             TWITCH_REDIRECT_URL: string;
+            TWITCH_SCOPES: string[];
         }
     }
     namespace Express {

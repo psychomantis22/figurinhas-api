@@ -1,23 +1,13 @@
-import util from "../util/util.js";
-
 export type userInfoType = {
-    aud?: string,
-    exp?: number,
-    iat?: number,
-    iss?: string,
-    sub?: string,
-    azp?: string,
-    preferred_username: string
+    id: number;
+    login: string;
+    profile_image_url: string;
 };
 
 let userInfoModel: userInfoType = {
-    aud: '',
-    exp: 0,
-    iat: 0,
-    iss: '',
-    sub: '',
-    azp: '',
-    preferred_username: ''
+    id: 0,
+    login: '',
+    profile_image_url: ''
 };
 
 export default userInfoModel;

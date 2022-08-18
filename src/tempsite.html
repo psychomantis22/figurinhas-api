@@ -92,6 +92,12 @@
                     <label for="album-name">Nome</label>
                     <input type="text" class="form-control" id="album-name" placeholder="Nome do album" ng-model="album.name">
                 </div>
+                <div class="form-group col-xs-4">
+                    <label for="album-reward">Reward</label>
+                    <select class="form-control" id="album-reward" placeholder="Reward do Album" ng-model="album.reward_id">
+                        <option ng-repeat="reward in rewards" value="{{reward.id}}">{{reward.title}}</option>
+                    </select>
+                </div>
             </div>
             <div ng-show="editFigurinha" class="col-xs-9">
                 <div class="form-group col-xs-12">
